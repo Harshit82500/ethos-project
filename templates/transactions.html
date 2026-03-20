@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "index.html" %} {% block content %}
 
 <h2 class="text-center mt-4">Transactions</h2>
@@ -29,3 +30,36 @@
 </table>
 
 {% endif %} {% endblock %}
+=======
+{% extends "index.html" %} {% block content %}
+
+<h2 class="text-center mt-4">Transactions</h2>
+
+{% if result %}
+
+<table class="table table-dark mt-4">
+  <thead>
+    <tr>
+      <th>Asset</th>
+      <th>Value</th>
+      <th>From</th>
+      <th>To</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for tx in result.transactions %}
+
+    <tr>
+      <td>{{ tx.asset }}</td>
+      <td>{{ tx.value }}</td>
+      <td>{{ tx.from }}</td>
+      <td>{{ tx.to }}</td>
+    </tr>
+
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endif %} {% endblock %}
+>>>>>>> 04007ba9358449e8d2892f6fccb7c9a46e79d07a

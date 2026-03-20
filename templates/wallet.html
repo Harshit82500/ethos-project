@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "index.html" %} {% block content %}
 
 <h2 class="text-center mt-4">Wallet Analyzer</h2>
@@ -41,3 +42,48 @@
 </div>
 
 {% endif %} {% endblock %}
+=======
+{% extends "index.html" %} {% block content %}
+
+<h2 class="text-center mt-4">Wallet Analyzer</h2>
+
+<form method="POST" action="/">
+    <div class="input-group mt-4">
+        <input
+            type="text"
+            name="wallet_address"
+            class="form-control"
+            placeholder="Enter wallet address"
+        />
+
+        <button class="btn btn-primary">Analyze</button>
+    </div>
+</form>
+
+{% if result %}
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <h5>Wallet Type</h5>
+            <h4>{{ result.category }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <h5>Transactions</h5>
+            <h4>{{ result.count }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <h5>Assets</h5>
+            <h4>{{ result.assets }}</h4>
+        </div>
+    </div>
+</div>
+
+{% endif %} {% endblock %}
+>>>>>>> 04007ba9358449e8d2892f6fccb7c9a46e79d07a
