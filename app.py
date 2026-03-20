@@ -32,56 +32,7 @@ app.secret_key = "my_super_secret_key_123"
 last_analysis_df = None
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global last_analysis_df
-
-    if request.method == 'POST':
-        address = request.form.get('wallet_address', '').strip()
-        
-        if not is_valid_ethereum_address(address):
-            result = {"error": "Invalid Ethereum Address format."}
-        else:
-            raw_data = get_wallet_transfers(address)
-            analysis = process_analysis(raw_data)
-            transactions = raw_data[:10]
-            
-            if "df" in analysis:
-                last_analysis_df = analysis.pop("df")
-            
-            result = analysis
-            result["address"] = address
-            result["transactions"] = transactions
-            
-            tx_count = result["count"]
-            total_volume = result["volume"]
-            asset_count = result["assets"]
-
-            suspicious = False
-            reason = ""
-
-            if tx_count > 800 and asset_count <= 3:
-                suspicious = True
-                reason = "High transaction frequency with low asset diversity (Possible Bot)"
-
-            elif total_volume > 100 and tx_count > 500:
-                suspicious = True
-                reason = "Very high trading volume detected"
-
-            result["suspicious"] = suspicious
-            result["reason"] = reason
-            # Save to database
-
-            conn = sqlite3.connect('ethos.db')
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO history (address, category, risk) VALUES (?, ?, ?)",(address, result["category"], result["risk_score"]))
-            conn.commit()
-            conn.close()
-
-            session['result'] = result   # SAVE HERE
-
-    else:
-        result = session.get('result')   # LOAD HERE
-
-    return render_template("index.html", result=result)
+    return render_template("index.html", result=None)
 
 
 @app.route('/download')
