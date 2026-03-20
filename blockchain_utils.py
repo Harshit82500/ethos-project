@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import numpy as np
 import re
-import shap
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
@@ -105,36 +104,7 @@ def process_analysis(transactions):
     assets = int(df['asset'].nunique())
 
     # -------- SHAP EXPLAINABILITY --------
-    shap_image = None
-
-    try:
-        X = pd.DataFrame([[cnt, vol, assets]],
-        columns=["transactions", "volume", "assets"])
-
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X)
-
-        plt.figure()
-
-        if isinstance(shap_values, list):
-            values = shap_values[0][0]
-        else:
-            values = shap_values[0]
-
-        shap.bar_plot(values, feature_names=X.columns, show=False)
-
-        plt.title("Feature Impact on Prediction")
-
-        buf = BytesIO()
-        plt.savefig(buf, format="png", bbox_inches="tight")
-        buf.seek(0)
-
-        shap_image = base64.b64encode(buf.getvalue()).decode("utf-8")
-        plt.close()
-
-    except Exception as e:
-        print("SHAP Error:", e)
-        shap_image = None
+    shap_image=None
 
     # -------- RULE-BASED LABEL --------
     if vol > 500:
