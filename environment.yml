@@ -1,0 +1,13 @@
+name: ethos_env
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip:
+    - web3
+    - pymongo
+    - mysql-connector-python
+    - pandas
+    - scikit-learn
+    - flask
+    - python-dotenv

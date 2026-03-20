@@ -1,0 +1,28 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<h2 class="text-center mt-4">Risk Monitor</h2>
+
+{% if result %}
+
+<div class="mt-5 text-center">
+
+<h4>Risk Score</h4>
+
+<div class="progress w-50 mx-auto">
+
+<div class="progress-bar"
+style="width: {{ result.risk_score }}%">
+
+{{ result.risk_score }}%
+
+</div>
+
+</div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

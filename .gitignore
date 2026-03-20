@@ -1,0 +1,16 @@
+# 1. Hide our Secrets
+.env
+
+# 2. Hide Python's temporary "cache" files
+__pycache__/
+*.py[cod]
+
+# 3. Hide OS-specific junk
+.DS_Store
+Thumbs.db
+
+# 4. Hide Editor-specific settings
+.vscode/
+.idea/
+*.swp
+.ipynb_checkpoints/
