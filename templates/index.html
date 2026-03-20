@@ -1,0 +1,402 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>ETHOS Dashboard</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+<div class="d-flex">
+
+<!-- Sidebar -->
+
+<div class="sidebar p-3">
+<h3>ETHOS</h3>
+
+<ul class="nav flex-column mt-4">
+
+<li class="nav-item">
+<a class="nav-link active" href="/">Dashboard</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="/wallet">Wallet Analyzer</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="/risk">Risk Monitor</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="/transactions">Transactions</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="/history">History</a>
+</li>
+
+</ul>
+</div>
+
+
+<!-- Main Content -->
+
+<div class="main-content w-100">
+<div class="container">
+
+{% block content %}
+
+<h1 class="text-center mt-5">ETHOS</h1>
+<p class="text-center">Real-time Blockchain Behavioral Analysis</p>
+
+<form method="POST" class="mt-4">
+<div class="input-group">
+<input type="text" name="wallet_address" class="form-control"
+placeholder="Paste Wallet Address (0x...)" required>
+<button class="btn btn-primary">Analyze Behavior</button>
+</div>
+</form>
+
+<div id="loading" class="text-center mt-3" style="display:none;">
+<h5>Analyzing blockchain data...</h5>
+</div>
+
+
+{% if result %}
+
+<hr>
+
+<h3 class="text-center mt-4 fade-in">Analysis Result</h3>
+
+{% if result.suspicious %}
+
+<div class="alert alert-danger mt-3 text-center">
+⚠ Suspicious Wallet Detected <br>
+{{ result.reason }}
+</div>
+{% endif %}
+
+<p class="text-center">
+Analyzing wallet: <strong>{{ result.address }}</strong>
+</p>
+
+<div class="row mt-4 fade-in">
+
+<div class="col-md-3">
+<div class="card text-center fade-in">
+<div class="card-body">
+<h5>Wallet Type</h5>
+<span class="badge bg-info fs-5">{{ result.category }}</span>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card text-center fade-in">
+<div class="card-body">
+<h5>Total Volume</h5>
+<h4>{{ result.volume }}</h4>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card text-center fade-in">
+<div class="card-body">
+<h5>Transactions</h5>
+<h4>{{ result.count }}</h4>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card text-center fade-in">
+<div class="card-body">
+<h5>Assets</h5>
+<h4>{{ result.assets }}</h4>
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- Risk -->
+
+<div class="mt-5">
+<h4>Risk Score</h4>
+
+<div class="progress">
+<div id="riskBar" class="progress-bar"
+style="width: {{ result.risk_score }}%">
+{{ result.risk_score }}%
+</div>
+</div>
+</div>
+
+<!-- Charts -->
+
+<div class="mt-5"> 
+<h4 class="text-center">Wallet Analytics</h4>
+<canvas id="walletChart"></canvas>
+
+<div class="mt-5">
+<h4 class="text-center">Transaction Activity Timeline</h4>
+<canvas id="timelineChart"></canvas>
+</div>
+</div>
+
+<!-- Gauge -->
+
+<div class="mt-5">
+<h4 class="text-center">Risk Gauge</h4>
+<canvas id="riskGauge"></canvas>
+
+<p class="text-center mt-3">
+Current Risk Score: <strong>{{ result.risk_score }}</strong>
+</p>
+</div>
+
+<!-- Network -->
+
+<div class="mt-5">
+<h4 class="text-center">Wallet Transaction Network</h4>
+
+<div id="networkGraph"
+style="height:400px;border:1px solid #ccc;background:#0f172a;">
+</div>
+</div>
+
+<!-- Table -->
+
+<div class="mt-5">
+<h4 class="text-center">Recent Transactions</h4>
+
+<table class="table table-dark table-striped">
+<thead>
+<tr>
+<th>Asset</th>
+<th>Value</th>
+<th>From</th>
+<th>To</th>
+</tr>
+</thead>
+
+<tbody>
+{% for tx in result.transactions %}
+<tr>
+<td>{{ tx.asset }}</td>
+<td>{{ tx.value }}</td>
+<td>{{ tx.from }}</td>
+<td>{{ tx.to }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<div class="mt-4 text-center">
+<a href="/download" class="btn btn-success">Download Analysis CSV</a>
+</div>
+
+<script>
+
+/* Wallet Chart */
+var ctx = document.getElementById('walletChart');
+
+var walletChart = new Chart(ctx,{
+
+type:'bar',
+
+data:{
+labels:['Volume','Transactions','Assets'],
+datasets:[{
+label:'Wallet Metrics',
+data:[{{ result.volume }},{{ result.count }},{{ result.assets }}],
+backgroundColor:['#38bdf8','#22c55e','#f59e0b'],
+hoverBackgroundColor: ['#0ea5e9','#16a34a','#d97706'],
+hoverBorderWidth: 2
+}]
+},
+
+options: {
+
+animation: {
+duration: 1500,
+easing: 'easeOutQuart'
+},
+
+hover: {
+mode: 'nearest',
+intersect: true
+},
+
+plugins: {
+tooltip: {
+enabled: true,
+backgroundColor: "#1e293b",
+titleColor: "#fff",
+bodyColor: "#e2e8f0"
+},
+legend: {
+labels: { color: "white" }
+}
+},
+
+scales: {
+x: { ticks: { color: "white" } },
+y: { ticks: { color: "white" } }
+},
+
+interaction: {
+mode: 'index',
+axis: 'y'
+}
+
+}
+
+
+});
+// Live update (real-time simulation)
+setInterval(() => {
+
+walletChart.data.datasets[0].data = [
+Math.floor(Math.random() * 100),
+Math.floor(Math.random() * 100),
+Math.floor(Math.random() * 50)
+];
+
+walletChart.update();
+
+}, 3000);
+
+
+
+/* Timeline */
+var timeline=document.getElementById("timelineChart");
+
+if(timeline){
+new Chart(timeline,{
+type:"line",
+data:{
+labels:["Day1","Day2","Day3","Day4","Day5","Day6"],
+datasets:[{
+label:"Transaction Activity",
+data:[5,8,6,10,7,9],
+borderColor:"#38bdf8",
+backgroundColor:"rgba(56,189,248,0.2)",
+fill:true,
+tension:0.4
+}]
+},
+
+options: {
+
+animation: {
+duration: 2000,
+easing: 'easeInOutQuart'
+},
+
+plugins: {
+legend: {
+labels: { color: "white" }
+}
+},
+
+scales: {
+x: { ticks: { color: "white" } },
+y: { ticks: { color: "white" } }
+}
+
+}
+
+});
+}
+
+/* Gauge */
+var riskValue={{ result.risk_score }};
+var gauge=document.getElementById("riskGauge");
+
+new Chart(gauge,{
+type:"doughnut",
+data:{
+datasets:[{
+data:[riskValue,100-riskValue],
+backgroundColor:[
+riskValue<=40?"#22c55e":riskValue<=70?"#f59e0b":"#ef4444",
+"#1e293b"
+]
+}]
+},
+options: {
+
+rotation: -90,
+circumference: 180,
+
+animation: {
+animateRotate: true,
+duration: 2000
+},
+
+plugins: {
+legend: { display: false }
+}
+
+}
+
+});
+
+/* Risk Color */
+var riskBar=document.getElementById("riskBar");
+
+if(riskBar){
+if(riskValue<=40){riskBar.style.background="#22c55e";}
+else if(riskValue<=70){riskBar.style.background="#f59e0b";}
+else{riskBar.style.background="#ef4444";}
+}
+
+/* Network */
+var container=document.getElementById("networkGraph");
+
+if(container){
+var nodes=new vis.DataSet([
+{id:1,label:"Main Wallet"},
+{id:2,label:"Receiver 1"},
+{id:3,label:"Receiver 2"},
+{id:4,label:"Receiver 3"},
+{id:5,label:"Receiver 4"}
+]);
+
+var edges=new vis.DataSet([
+{from:1,to:2},
+{from:1,to:3},
+{from:1,to:4},
+{from:1,to:5}
+]);
+
+new vis.Network(container,{nodes:nodes,edges:edges},{});
+}
+
+</script>
+
+{% endif %}
+{% endblock %}
+
+</div> <!-- container -->
+</div> <!-- main-content -->
+</div> <!-- d-flex -->
+
+</body>
+</html>
