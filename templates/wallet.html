@@ -1,89 +1,80 @@
-<<<<<<< HEAD
-{% extends "index.html" %} {% block content %}
+{% extends "index.html" %}
+{% block content %}
 
-<h2 class="text-center mt-4">Wallet Analyzer</h2>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Wallet Analyzer</h1>
+    <p>Submit any Ethereum address to classify and score it</p>
+  </div>
+  <div class="live-badge"><div class="pulse"></div>Live</div>
+</div>
 
-<form method="POST" action="/">
-    <div class="input-group mt-4">
-        <input
-            type="text"
-            name="wallet_address"
-            class="form-control"
-            placeholder="Enter wallet address"
-        />
-
-        <button class="btn btn-primary">Analyze</button>
+<div class="search-card">
+  <h2>Enter a Wallet Address</h2>
+  <form method="POST" action="/" id="analyzeForm">
+    <div class="search-row">
+      <input
+        type="text" name="wallet_address"
+        class="wallet-input"
+        placeholder="0x… (40 hex characters)"
+        autocomplete="off" required
+      >
+      <button type="submit" class="btn-primary">Analyze →</button>
     </div>
-</form>
+    <div class="loading-hint" id="loadingHint">
+      <div class="spinner"></div>
+      Fetching on-chain data…
+    </div>
+  </form>
+</div>
 
 {% if result %}
 
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card text-center">
-            <h5>Wallet Type</h5>
-            <h4>{{ result.category }}</h4>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card text-center">
-            <h5>Transactions</h5>
-            <h4>{{ result.count }}</h4>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card text-center">
-            <h5>Assets</h5>
-            <h4>{{ result.assets }}</h4>
-        </div>
-    </div>
+<div class="metrics-grid">
+  <div class="metric-card">
+    <div class="metric-icon">🪪</div>
+    <div class="metric-label">Wallet Type</div>
+    <div class="metric-tag">{{ result.category }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">🔁</div>
+    <div class="metric-label">Transactions</div>
+    <div class="metric-value">{{ result.count }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">🪙</div>
+    <div class="metric-label">Unique Assets</div>
+    <div class="metric-value">{{ result.assets }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-icon">💰</div>
+    <div class="metric-label">Volume (ETH)</div>
+    <div class="metric-value">{{ result.volume }}</div>
+  </div>
 </div>
 
-{% endif %} {% endblock %}
-=======
-{% extends "index.html" %} {% block content %}
-
-<h2 class="text-center mt-4">Wallet Analyzer</h2>
-
-<form method="POST" action="/">
-    <div class="input-group mt-4">
-        <input
-            type="text"
-            name="wallet_address"
-            class="form-control"
-            placeholder="Enter wallet address"
-        />
-
-        <button class="btn btn-primary">Analyze</button>
-    </div>
-</form>
-
-{% if result %}
-
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card text-center">
-            <h5>Wallet Type</h5>
-            <h4>{{ result.category }}</h4>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card text-center">
-            <h5>Transactions</h5>
-            <h4>{{ result.count }}</h4>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card text-center">
-            <h5>Assets</h5>
-            <h4>{{ result.assets }}</h4>
-        </div>
-    </div>
+<div class="insight-panel">
+  <h3>Behavioral Summary</h3>
+  <p class="insight-text">
+    Based on on-chain data, this wallet is classified as a
+    <strong>{{ result.category }}</strong> with a risk score of
+    <strong>{{ result.risk_score }}%</strong>.
+    {% if result.anomaly_count > 0 %}
+      {{ result.anomaly_count }} transaction(s) showed anomalous patterns that
+      may warrant further investigation.
+    {% else %}
+      No anomalous transactions were detected in the sampled data.
+    {% endif %}
+  </p>
 </div>
 
-{% endif %} {% endblock %}
->>>>>>> 04007ba9358449e8d2892f6fccb7c9a46e79d07a
+{% else %}
+
+<div class="empty-state">
+  <div class="empty-icon">◈</div>
+  <h3>No wallet loaded</h3>
+  <p>Enter an address above to see wallet classification and metrics.</p>
+</div>
+
+{% endif %}
+{% endblock %}

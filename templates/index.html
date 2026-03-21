@@ -1,181 +1,293 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-<meta charset="UTF-8">
-<title>ETHOS Dashboard</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-
-<link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <title>ETHOS — Blockchain Analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
-
 <body>
 
-<!-- Mobile Menu Button -->
-<button class="btn btn-primary d-md-none m-2" onclick="toggleSidebar()">
-☰ Menu
-</button>
+<!-- Hamburger (mobile) -->
+<button class="hamburger" id="hamburger" aria-label="Open menu">☰</button>
+<div class="overlay" id="overlay"></div>
 
-<div class="d-flex flex-column flex-md-row">
+<div style="display:flex;">
 
-<!-- Sidebar -->
-<div class="sidebar p-3 w-100 w-md-25">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">⬡</div>
+      <h3>ETHOS</h3>
+    </div>
+    <ul class="nav flex-column">
+      <li><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/"><span class="icon">⬜</span> Dashboard</a></li>
+      <li><a class="nav-link {% if request.path == '/wallet' %}active{% endif %}" href="/wallet"><span class="icon">◈</span> Wallet Analyzer</a></li>
+      <li><a class="nav-link {% if request.path == '/risk' %}active{% endif %}" href="/risk"><span class="icon">◉</span> Risk Monitor</a></li>
+      <li><a class="nav-link {% if request.path == '/transactions' %}active{% endif %}" href="/transactions"><span class="icon">⇄</span> Transactions</a></li>
+      <li><a class="nav-link {% if request.path == '/history' %}active{% endif %}" href="/history"><span class="icon">◷</span> History</a></li>
+    </ul>
+  </nav>
 
-<h3>ETHOS</h3>
+  <!-- Main -->
+  <div class="main-content w-100">
 
-<ul class="nav flex-column mt-4">
-<li class="nav-item"><a class="nav-link active" href="/">Dashboard</a></li>
-<li class="nav-item"><a class="nav-link" href="/wallet">Wallet Analyzer</a></li>
-<li class="nav-item"><a class="nav-link" href="/risk">Risk Monitor</a></li>
-<li class="nav-item"><a class="nav-link" href="/transactions">Transactions</a></li>
-<li class="nav-item"><a class="nav-link" href="/history">History</a></li>
-</ul>
+    {% block content %}
 
-</div>
+    <!-- Top Bar -->
+    <div class="topbar">
+      <h1>Dashboard</h1>
+      <div class="status-badge"><div class="pulse-dot"></div>Ethereum Mainnet</div>
+    </div>
 
-<!-- Main Content -->
-<div class="main-content w-100">
-<div class="container">
+    <!-- Search Form -->
+    <div class="search-form">
+      <div class="section-title">Analyze Wallet</div>
+      <form method="POST" id="analyzeForm">
+        <div class="input-row">
+          <input
+            type="text"
+            name="wallet_address"
+            class="wallet-input"
+            placeholder="Paste wallet address (0x...)"
+            required
+          >
+          <button type="submit" class="btn-analyze">Analyze →</button>
+        </div>
+      </form>
+      <div id="loadingMsg" style="display:none; margin-top:12px; font-size:13px; color:var(--muted);">
+        ⏳ Fetching blockchain data…
+      </div>
+    </div>
 
-{% block content %}
+    {% if result %}
 
-<h1 class="text-center mt-5">ETHOS</h1>
-<p class="text-center">Real-time Blockchain Behavioral Analysis</p>
+    {% if result.suspicious %}
+    <div class="alert-danger fade-in">
+      ⚠ Suspicious Wallet — {{ result.reason }}
+    </div>
+    {% endif %}
 
-<form method="POST" class="mt-4">
-<div class="input-group flex-column flex-md-row">
-<input type="text" name="wallet_address" class="form-control"
-placeholder="Paste Wallet Address (0x...)" required>
-<button class="btn btn-primary">Analyze Behavior</button>
-</div>
-</form>
+    <!-- Metric Cards -->
+    <div class="cards-grid fade-in">
+      <div class="card">
+        <div class="card-label">Wallet Type</div>
+        <div class="card-badge">{{ result.category }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Total Volume</div>
+        <div class="card-value">{{ result.volume }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Transactions</div>
+        <div class="card-value">{{ result.count }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Assets</div>
+        <div class="card-value">{{ result.assets }}</div>
+      </div>
+    </div>
 
-<div id="loading" class="text-center mt-3" style="display:none;">
-<h5>Analyzing blockchain data...</h5>
-</div>
+    <!-- Risk Score -->
+    <div class="risk-section fade-in">
+      <div class="section-title">Risk Score</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:13px; color:var(--muted);">{{ result.address[:20] }}…</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px;"
+          id="riskLabel">{{ result.risk_score }}%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="riskBar"
+          style="width:{{ result.risk_score }}%; background:{% if result.risk_score <= 40 %}var(--green){% elif result.risk_score <= 70 %}var(--yellow){% else %}var(--red){% endif %};">
+        </div>
+      </div>
+    </div>
 
-{% if result %}
+    <!-- Charts -->
+    <div class="charts-row fade-in">
+      <div class="chart-card">
+        <div class="section-title">Wallet Metrics</div>
+        <div class="chart-wrap"><canvas id="walletChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="section-title">Activity Timeline</div>
+        <div class="chart-wrap"><canvas id="timelineChart"></canvas></div>
+      </div>
+    </div>
 
-<hr>
+    <!-- Gauge + Network -->
+    <div class="charts-row fade-in">
+      <div class="chart-card">
+        <div class="section-title">Risk Gauge</div>
+        <div class="gauge-wrap"><canvas id="riskGauge"></canvas></div>
+        <p style="text-align:center; margin-top:10px; font-size:13px; color:var(--muted);">
+          Score: <strong style="color:var(--text);">{{ result.risk_score }}</strong>
+        </p>
+      </div>
+      <div class="chart-card">
+        <div class="section-title">Transaction Network</div>
+        <div id="networkGraph"></div>
+      </div>
+    </div>
 
-<h3 class="text-center mt-4 fade-in">Analysis Result</h3>
+    <!-- Transactions Table -->
+    <div class="table-card fade-in">
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border);">
+        <div class="section-title" style="margin-bottom:0;">Recent Transactions</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Asset</th><th>Value</th><th>From</th><th>To</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tx in result.transactions %}
+            <tr>
+              <td>{{ tx.asset }}</td>
+              <td>{{ tx.value }}</td>
+              <td>{{ tx.from[:16] if tx.from else '—' }}…</td>
+              <td>{{ tx.to[:16] if tx.to else '—' }}…</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-<p class="text-center">
-Analyzing wallet: <strong>{{ result.address }}</strong>
-</p>
+    <div class="actions-row fade-in">
+      <a href="/download" class="btn-download">⬇ Download CSV</a>
+    </div>
 
-<div class="row mt-4 fade-in">
+    <script>
+    const rv = {{ result.risk_score }};
 
-<div class="col-md-3">
-<div class="card text-center">
-<div class="card-body">
-<h5>Wallet Type</h5>
-<span class="badge bg-info fs-5">{{ result.category }}</span>
-</div>
-</div>
-</div>
+    /* ── Bar Chart ── */
+    new Chart(document.getElementById('walletChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Volume', 'Transactions', 'Assets'],
+        datasets: [{
+          label: 'Wallet Metrics',
+          data: [{{ result.volume }}, {{ result.count }}, {{ result.assets }}],
+          backgroundColor: ['#00d4ff','#00e676','#ffd740'],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 1200 },
+        plugins: { legend: { labels: { color: '#e2eaf6' } } },
+        scales: {
+          x: { ticks: { color: '#5a7a99' }, grid: { color: '#1a3a5c' } },
+          y: { ticks: { color: '#5a7a99' }, grid: { color: '#1a3a5c' } }
+        }
+      }
+    });
 
-<div class="col-md-3">
-<div class="card text-center">
-<div class="card-body">
-<h5>Total Volume</h5>
-<h4>{{ result.volume }}</h4>
-</div>
-</div>
-</div>
+    /* ── Timeline ── */
+    new Chart(document.getElementById('timelineChart'), {
+      type: 'line',
+      data: {
+        labels: ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6'],
+        datasets: [{
+          label: 'Activity',
+          data: [5,8,6,10,7,9],
+          borderColor: '#00d4ff',
+          backgroundColor: 'rgba(0,212,255,0.1)',
+          fill: true, tension: 0.4, pointRadius: 4,
+          pointBackgroundColor: '#00d4ff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 1500 },
+        plugins: { legend: { labels: { color: '#e2eaf6' } } },
+        scales: {
+          x: { ticks: { color: '#5a7a99' }, grid: { color: '#1a3a5c' } },
+          y: { ticks: { color: '#5a7a99' }, grid: { color: '#1a3a5c' } }
+        }
+      }
+    });
 
-<div class="col-md-3">
-<div class="card text-center">
-<div class="card-body">
-<h5>Transactions</h5>
-<h4>{{ result.count }}</h4>
-</div>
-</div>
-</div>
+    /* ── Gauge ── */
+    new Chart(document.getElementById('riskGauge'), {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [rv, 100 - rv],
+          backgroundColor: [rv<=40?'#00e676':rv<=70?'#ffd740':'#ff5252', '#0f2040'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        rotation: -90, circumference: 180,
+        animation: { animateRotate: true, duration: 1800 },
+        plugins: { legend: { display: false } },
+        cutout: '70%'
+      }
+    });
 
-<div class="col-md-3">
-<div class="card text-center">
-<div class="card-body">
-<h5>Assets</h5>
-<h4>{{ result.assets }}</h4>
-</div>
-</div>
-</div>
+    /* ── Network ── */
+    const container = document.getElementById('networkGraph');
+    if (container && typeof vis !== 'undefined') {
+      const nodes = new vis.DataSet([
+        {id:1,label:'Main Wallet',color:{background:'#00d4ff',border:'#0099cc'},font:{color:'#000'}},
+        {id:2,label:'Receiver 1',color:{background:'#0f2040',border:'#1a3a5c'},font:{color:'#e2eaf6'}},
+        {id:3,label:'Receiver 2',color:{background:'#0f2040',border:'#1a3a5c'},font:{color:'#e2eaf6'}},
+        {id:4,label:'Receiver 3',color:{background:'#0f2040',border:'#1a3a5c'},font:{color:'#e2eaf6'}},
+        {id:5,label:'Receiver 4',color:{background:'#0f2040',border:'#1a3a5c'},font:{color:'#e2eaf6'}}
+      ]);
+      const edges = new vis.DataSet([
+        {from:1,to:2,color:{color:'#1a3a5c'}},
+        {from:1,to:3,color:{color:'#1a3a5c'}},
+        {from:1,to:4,color:{color:'#1a3a5c'}},
+        {from:1,to:5,color:{color:'#1a3a5c'}}
+      ]);
+      new vis.Network(container, {nodes,edges}, {
+        physics: { stabilization: false },
+        interaction: { tooltipDelay: 100 }
+      });
+    }
 
-</div>
+    /* ── Loading ── */
+    document.getElementById('analyzeForm').addEventListener('submit', function(){
+      document.getElementById('loadingMsg').style.display = 'block';
+    });
+    </script>
 
-<div class="mt-5">
-<h4>Risk Score</h4>
-<div class="progress">
-<div id="riskBar" class="progress-bar"
-style="width: {{ result.risk_score }}%">
-{{ result.risk_score }}%
-</div>
-</div>
-</div>
+    {% else %}
 
-<div class="mt-5">
-<h4 class="text-center">Wallet Analytics</h4>
-<canvas id="walletChart"></canvas>
-</div>
+    <div class="empty-state">
+      <div class="big-icon">⬡</div>
+      <p>Enter a wallet address above to start the behavioral analysis.</p>
+    </div>
 
-<div class="mt-5">
-<h4 class="text-center">Wallet Transaction Network</h4>
-<div id="networkGraph"
-style="height:300px;border:1px solid #ccc;background:#0f172a;">
-</div>
-</div>
+    {% endif %}
+    {% endblock %}
 
-<div class="mt-5">
-<h4 class="text-center">Recent Transactions</h4>
-
-<div class="table-responsive">
-<table class="table table-dark table-striped">
-
-<thead>
-<tr>
-<th>Asset</th>
-<th>Value</th>
-<th>From</th>
-<th>To</th>
-</tr>
-</thead>
-
-<tbody>
-{% for tx in result.transactions %}
-<tr>
-<td>{{ tx.asset }}</td>
-<td>{{ tx.value }}</td>
-<td>{{ tx.from }}</td>
-<td>{{ tx.to }}</td>
-</tr>
-{% endfor %}
-</tbody>
-
-</table>
-</div>
-
-</div>
-
-{% endif %}
-
-{% endblock %}
-
-</div>
-</div>
+  </div>
 </div>
 
 <script>
-function toggleSidebar() {
-document.querySelector(".sidebar").classList.toggle("d-none");
-}
-</script>
+/* Sidebar toggle for mobile */
+const hamburger = document.getElementById('hamburger');
+const sidebar   = document.getElementById('sidebar');
+const overlay   = document.getElementById('overlay');
 
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+});
+
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+});
+</script>
 </body>
 </html>

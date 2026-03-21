@@ -1,59 +1,79 @@
-<<<<<<< HEAD
 {% extends "index.html" %}
-
 {% block content %}
 
-<h2 class="text-center mt-4">Risk Monitor</h2>
+<div class="topbar">
+  <h1>Risk Monitor</h1>
+  <div class="status-badge"><div class="pulse-dot"></div>Live</div>
+</div>
 
 {% if result %}
 
-<div class="mt-5 text-center">
-
-<h4>Risk Score</h4>
-
-<div class="progress w-50 mx-auto">
-
-<div class="progress-bar"
-style="width: {{ result.risk_score }}%">
-
-{{ result.risk_score }}%
-
+<div class="cards-grid fade-in">
+  <div class="card">
+    <div class="card-label">Risk Score</div>
+    <div class="card-value"
+      style="color:{% if result.risk_score <= 40 %}var(--green){% elif result.risk_score <= 70 %}var(--yellow){% else %}var(--red){% endif %};">
+      {{ result.risk_score }}%
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">Category</div>
+    <div class="card-badge">{{ result.category }}</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Anomalies</div>
+    <div class="card-value">{{ result.anomaly_count }}</div>
+  </div>
 </div>
 
+<div class="risk-section fade-in">
+  <div class="section-title">Risk Level</div>
+  <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+    <span style="font-size:13px; color:var(--muted);">
+      {% if result.risk_score <= 40 %}Low Risk
+      {% elif result.risk_score <= 70 %}Medium Risk
+      {% else %}High Risk{% endif %}
+    </span>
+    <span style="font-family:'JetBrains Mono',monospace; font-weight:700;">{{ result.risk_score }}%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill"
+      style="width:{{ result.risk_score }}%; background:{% if result.risk_score <= 40 %}var(--green){% elif result.risk_score <= 70 %}var(--yellow){% else %}var(--red){% endif %};">
+    </div>
+  </div>
 </div>
 
+<div class="chart-card fade-in" style="max-width:320px; margin:0 auto;">
+  <div class="section-title">Risk Gauge</div>
+  <div class="gauge-wrap"><canvas id="riskGauge2"></canvas></div>
+</div>
+
+<script>
+const rv2 = {{ result.risk_score }};
+new Chart(document.getElementById('riskGauge2'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [rv2, 100 - rv2],
+      backgroundColor: [rv2<=40?'#00e676':rv2<=70?'#ffd740':'#ff5252', '#0f2040'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    rotation: -90, circumference: 180,
+    animation: { animateRotate: true, duration: 1800 },
+    plugins: { legend: { display: false } },
+    cutout: '70%'
+  }
+});
+</script>
+
+{% else %}
+
+<div class="empty-state">
+  <div class="big-icon">◉</div>
+  <p>No data yet — analyze a wallet from the Dashboard first.</p>
 </div>
 
 {% endif %}
-
 {% endblock %}
-=======
-{% extends "index.html" %}
-
-{% block content %}
-
-<h2 class="text-center mt-4">Risk Monitor</h2>
-
-{% if result %}
-
-<div class="mt-5 text-center">
-
-<h4>Risk Score</h4>
-
-<div class="progress w-50 mx-auto">
-
-<div class="progress-bar"
-style="width: {{ result.risk_score }}%">
-
-{{ result.risk_score }}%
-
-</div>
-
-</div>
-
-</div>
-
-{% endif %}
-
-{% endblock %}
->>>>>>> 04007ba9358449e8d2892f6fccb7c9a46e79d07a

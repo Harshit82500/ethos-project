@@ -1,65 +1,51 @@
-<<<<<<< HEAD
-{% extends "index.html" %} {% block content %}
+{% extends "index.html" %}
+{% block content %}
 
-<h2 class="text-center mt-4">Transactions</h2>
-
-{% if result %}
-
-<table class="table table-dark mt-4">
-  <thead>
-    <tr>
-      <th>Asset</th>
-      <th>Value</th>
-      <th>From</th>
-      <th>To</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {% for tx in result.transactions %}
-
-    <tr>
-      <td>{{ tx.asset }}</td>
-      <td>{{ tx.value }}</td>
-      <td>{{ tx.from }}</td>
-      <td>{{ tx.to }}</td>
-    </tr>
-
-    {% endfor %}
-  </tbody>
-</table>
-
-{% endif %} {% endblock %}
-=======
-{% extends "index.html" %} {% block content %}
-
-<h2 class="text-center mt-4">Transactions</h2>
+<div class="topbar">
+  <h1>Transactions</h1>
+  <div class="status-badge"><div class="pulse-dot"></div>Live</div>
+</div>
 
 {% if result %}
 
-<table class="table table-dark mt-4">
-  <thead>
-    <tr>
-      <th>Asset</th>
-      <th>Value</th>
-      <th>From</th>
-      <th>To</th>
-    </tr>
-  </thead>
+<div class="table-card fade-in">
+  <div style="padding:16px 20px; border-bottom:1px solid var(--border);">
+    <div class="section-title" style="margin-bottom:0;">Transaction Log</div>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Asset</th>
+          <th>Value</th>
+          <th>From</th>
+          <th>To</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in result.transactions %}
+        <tr>
+          <td>{{ tx.asset }}</td>
+          <td>{{ tx.value }}</td>
+          <td>{{ tx.from[:18] if tx.from else '—' }}…</td>
+          <td>{{ tx.to[:18] if tx.to else '—' }}…</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-  <tbody>
-    {% for tx in result.transactions %}
+<div class="actions-row">
+  <a href="/download" class="btn-download">⬇ Download CSV</a>
+</div>
 
-    <tr>
-      <td>{{ tx.asset }}</td>
-      <td>{{ tx.value }}</td>
-      <td>{{ tx.from }}</td>
-      <td>{{ tx.to }}</td>
-    </tr>
+{% else %}
 
-    {% endfor %}
-  </tbody>
-</table>
+<div class="empty-state">
+  <div class="big-icon">⇄</div>
+  <p>No transaction data. Analyze a wallet from the Dashboard first.</p>
+</div>
 
-{% endif %} {% endblock %}
->>>>>>> 04007ba9358449e8d2892f6fccb7c9a46e79d07a
+{% endif %}
+{% endblock %}

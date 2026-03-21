@@ -1,191 +1,91 @@
-<<<<<<< HEAD
 {% extends "index.html" %}
-
 {% block content %}
 
-<h2 class="text-center mt-4">Analysis History</h2>
-
-<!-- GRAPH -->
-
-<h4 class="text-center mt-4">Wallet Category Distribution</h4>
-<div style="width:350px;height:350px;margin:auto;background:#020617;padding:20px;border-radius:12px;">
-<canvas id="historyChart"></canvas>
+<div class="topbar">
+  <h1>Analysis History</h1>
+  <div class="status-badge"><div class="pulse-dot"></div>Database</div>
 </div>
 
-<!-- TABLE -->
+<!-- Pie Chart -->
+<div class="chart-card fade-in" style="max-width:340px; margin:0 auto 28px;">
+  <div class="section-title">Wallet Category Distribution</div>
+  <div style="height:260px; position:relative;">
+    <canvas id="historyChart"></canvas>
+  </div>
+</div>
 
-<table class="table table-dark mt-4">
-
-<thead>
-<tr>
-<th>Wallet</th>
-<th>Category</th>
-<th>Risk</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for row in data %}
-
-<tr>
-<td>{{ row[0] }}</td>
-<td>{{ row[1] }}</td>
-<td>{{ row[2] }}</td>
-</tr>
-{% endfor %}
-
-</tbody>
-
-</table>
-
-<!-- CHART JS -->
+<!-- History Table -->
+<div class="table-card fade-in">
+  <div style="padding:16px 20px; border-bottom:1px solid var(--border);">
+    <div class="section-title" style="margin-bottom:0;">Recent Analyses</div>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Wallet Address</th>
+          <th>Category</th>
+          <th>Risk Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data %}
+        <tr>
+          <td>{{ row[0][:20] }}…</td>
+          <td><span class="card-badge" style="font-size:11px;">{{ row[1] }}</span></td>
+          <td>
+            <span style="font-weight:700;
+              color:{% if row[2] <= 40 %}var(--green){% elif row[2] <= 70 %}var(--yellow){% else %}var(--red){% endif %};">
+              {{ row[2] }}%
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not data %}
+        <tr>
+          <td colspan="3" style="text-align:center; color:var(--muted); padding:24px;">No history yet.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-
 var labels = [];
 var values = [];
-
 {% for item in stats %}
-labels.push("{{ item[0] }}");
-values.push({{ item[1] }});
+  labels.push("{{ item[0] }}");
+  values.push({{ item[1] }});
 {% endfor %}
 
-var ctx = document.getElementById('historyChart');
-
-new Chart(ctx, {
-
-type: 'pie',
-
-data: {
-labels: labels,
-datasets: [{
-data: values,
-backgroundColor: [
-'#22c55e',
-'#ef4444',
-'#38bdf8'
-]
-}]
-},
-
-options: {
-
-responsive: true,
-maintainAspectRatio: false,
-
-plugins: {
-legend: {
-labels: {
-color: "white"
+if (labels.length > 0) {
+  new Chart(document.getElementById('historyChart'), {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: ['#00e676','#ff5252','#00d4ff','#ffd740','#a78bfa'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 1200 },
+      plugins: {
+        legend: {
+          labels: { color: '#e2eaf6', padding: 16 }
+        }
+      }
+    }
+  });
+} else {
+  document.getElementById('historyChart').parentElement.innerHTML =
+    '<p style="text-align:center;color:var(--muted);padding-top:80px;">No data yet.</p>';
 }
-}
-}
-
-}
-
-
-
-});
-
 </script>
 
 {% endblock %}
-=======
-{% extends "index.html" %}
-
-{% block content %}
-
-<h2 class="text-center mt-4">Analysis History</h2>
-
-<!-- GRAPH -->
-
-<h4 class="text-center mt-4">Wallet Category Distribution</h4>
-<div style="width:350px;height:350px;margin:auto;background:#020617;padding:20px;border-radius:12px;">
-<canvas id="historyChart"></canvas>
-</div>
-
-<!-- TABLE -->
-
-<table class="table table-dark mt-4">
-
-<thead>
-<tr>
-<th>Wallet</th>
-<th>Category</th>
-<th>Risk</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for row in data %}
-
-<tr>
-<td>{{ row[0] }}</td>
-<td>{{ row[1] }}</td>
-<td>{{ row[2] }}</td>
-</tr>
-{% endfor %}
-
-</tbody>
-
-</table>
-
-<!-- CHART JS -->
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-
-var labels = [];
-var values = [];
-
-{% for item in stats %}
-labels.push("{{ item[0] }}");
-values.push({{ item[1] }});
-{% endfor %}
-
-var ctx = document.getElementById('historyChart');
-
-new Chart(ctx, {
-
-type: 'pie',
-
-data: {
-labels: labels,
-datasets: [{
-data: values,
-backgroundColor: [
-'#22c55e',
-'#ef4444',
-'#38bdf8'
-]
-}]
-},
-
-options: {
-
-responsive: true,
-maintainAspectRatio: false,
-
-plugins: {
-legend: {
-labels: {
-color: "white"
-}
-}
-}
-
-}
-
-
-
-});
-
-</script>
-
-{% endblock %}
->>>>>>> 04007ba9358449e8d2892f6fccb7c9a46e79d07a
